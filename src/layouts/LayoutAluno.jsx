@@ -29,8 +29,9 @@ function LayoutAluno() {
       </aside>
 
       <main className="flex-grow-1">
-        <header className="bg-white border-bottom p-3">
+        <header className="bg-white border-bottom p-3 d-flex justify-content-between align-items-center">
           <span className="fw-semibold">Portal do Aluno</span>
+          <NavLink to="/" className="text-secondary">Sair</NavLink>
         </header>
 
         <div className="p-4">
