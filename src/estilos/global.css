@@ -26,6 +26,14 @@ a {
   background-color: #495057;
 }
 
+.admin-stat-card {
+  border-left: 3px solid #7893ad;
+}
+
+.admin-stat-value {
+  color: #345f8c;
+}
+
 @media (max-width: 767px) {
   .admin-sidebar {
     min-height: auto;

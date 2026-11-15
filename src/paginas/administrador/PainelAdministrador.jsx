@@ -18,14 +18,42 @@ function PainelAdministrador() {
       </div>
 
       <div className="row g-3 mb-4">
-        <div className="col-sm-6 col-xl-3"><div className="card rounded-0"><div className="card-body"><h2 className="h6">Disciplinas</h2><p className="display-6 mb-0">{disciplinas.length}</p></div></div></div>
-        <div className="col-sm-6 col-xl-3"><div className="card rounded-0"><div className="card-body"><h2 className="h6">Professores</h2><p className="display-6 mb-0">{professores.length}</p></div></div></div>
-        <div className="col-sm-6 col-xl-3"><div className="card rounded-0"><div className="card-body"><h2 className="h6">Turmas</h2><p className="display-6 mb-0">{turmas.length}</p></div></div></div>
-        <div className="col-sm-6 col-xl-3"><div className="card rounded-0"><div className="card-body"><h2 className="h6">Matrículas</h2><p className="display-6 mb-0">{matriculas.length}</p></div></div></div>
+        <div className="col-sm-6 col-xl-3">
+          <div className="card rounded-0 h-100 admin-stat-card">
+            <div className="card-body p-3">
+              <h2 className="h6 text-secondary mb-2">Disciplinas</h2>
+              <p className="h2 mb-0 admin-stat-value">{disciplinas.length}</p>
+            </div>
+          </div>
+        </div>
+        <div className="col-sm-6 col-xl-3">
+          <div className="card rounded-0 h-100 admin-stat-card">
+            <div className="card-body p-3">
+              <h2 className="h6 text-secondary mb-2">Professores</h2>
+              <p className="h2 mb-0 admin-stat-value">{professores.length}</p>
+            </div>
+          </div>
+        </div>
+        <div className="col-sm-6 col-xl-3">
+          <div className="card rounded-0 h-100 admin-stat-card">
+            <div className="card-body p-3">
+              <h2 className="h6 text-secondary mb-2">Turmas</h2>
+              <p className="h2 mb-0 admin-stat-value">{turmas.length}</p>
+            </div>
+          </div>
+        </div>
+        <div className="col-sm-6 col-xl-3">
+          <div className="card rounded-0 h-100 admin-stat-card">
+            <div className="card-body p-3">
+              <h2 className="h6 text-secondary mb-2">Matrículas</h2>
+              <p className="h2 mb-0 admin-stat-value">{matriculas.length}</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="row g-3">
-        <div className="col-lg-5">
+        <div className="col-12 col-xxl-4">
           <section className="card rounded-0 h-100">
             <h2 className="card-header h6 bg-white">Dados da universidade</h2>
             <div className="card-body">
@@ -40,7 +68,7 @@ function PainelAdministrador() {
           </section>
         </div>
 
-        <div className="col-lg-7">
+        <div className="col-12 col-xxl-8">
           <section className="card rounded-0 h-100">
             <h2 className="card-header h6 bg-white">Professores cadastrados</h2>
             <div className="table-responsive">
