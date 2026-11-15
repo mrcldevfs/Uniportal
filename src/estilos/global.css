@@ -1,0 +1,15 @@
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f5f6fa;
+  }
+  
+  #root {
+    min-height: 100vh;
+  }
+  
+  a {
+    text-decoration: none;
+  }
+  
