@@ -1,15 +1,41 @@
-
 body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #f5f6fa;
+  margin: 0;
+  min-width: 320px;
+  background-color: #f5f6f8;
+  font-family: Arial, sans-serif;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+a {
+  text-decoration: none;
+}
+
+.admin-sidebar {
+  flex: 0 0 240px;
+  min-height: 100vh;
+}
+
+.admin-sidebar .nav-link {
+  color: #fff;
+}
+
+.admin-sidebar .nav-link.active {
+  background-color: #495057;
+}
+
+.admin-stat-card {
+  border-left: 3px solid #7893ad;
+}
+
+.admin-stat-value {
+  color: #345f8c;
+}
+
+@media (max-width: 767px) {
+  .admin-sidebar {
+    min-height: auto;
   }
-  
-  #root {
-    min-height: 100vh;
-  }
-  
-  a {
-    text-decoration: none;
-  }
-  
+}
