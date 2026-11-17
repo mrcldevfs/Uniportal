@@ -127,6 +127,7 @@ function DisciplinasDisponiveis() {
               <label htmlFor="filtro-vagas" className="form-check-label">
                 Somente com vagas
               </label>
+            </div>
 
             <button type="button" className="btn btn-outline-secondary" onClick={limparFiltros}>
               Limpar filtros
