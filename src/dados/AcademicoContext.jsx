@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useRef, useState } from 'react'
 
 const disciplinas = [
   {
@@ -65,18 +65,25 @@ function horariosConflitam(primeira, segunda) {
   )
 }
 
+function obterVagasDisponiveis(disciplina, matriculas) {
+  return disciplina.vagas -
+    matriculas.filter(
+      (matricula) =>
+        matricula.situacao === 'Ativa' &&
+        matricula.disciplinaId === disciplina.id,
+    ).length
+}
+
 export function AcademicoProvider({ children }) {
   const [matriculas, setMatriculas] = useState([])
+  const matriculasRef = useRef(matriculas)
 
   const matriculasAtivas = matriculas.filter(
     (matricula) => matricula.situacao === 'Ativa',
   )
 
   const vagasDisponiveis = (disciplina) =>
-    disciplina.vagas -
-    matriculasAtivas.filter(
-      (matricula) => matricula.disciplinaId === disciplina.id,
-    ).length
+    obterVagasDisponiveis(disciplina, matriculas)
 
   const matricular = (disciplinaId) => {
     const disciplina = disciplinas.find((item) => item.id === disciplinaId)
@@ -84,15 +91,27 @@ export function AcademicoProvider({ children }) {
       return { sucesso: false, mensagem: 'Disciplina não encontrada.' }
     }
 
+    const matriculasAtuais = matriculasRef.current
+    const matriculasAtivasAtuais = matriculasAtuais.filter(
+      (matricula) => matricula.situacao === 'Ativa',
+    )
+
+    if (disciplinasConcluidas.has(disciplina.id)) {
+      return {
+        sucesso: false,
+        mensagem: 'Você já concluiu esta disciplina.',
+      }
+    }
+
     if (
-      matriculasAtivas.some(
+      matriculasAtivasAtuais.some(
         (matricula) => matricula.disciplinaId === disciplina.id,
       )
     ) {
       return { sucesso: false, mensagem: 'Você já está matriculado nesta disciplina.' }
     }
 
-    if (vagasDisponiveis(disciplina) <= 0) {
+    if (obterVagasDisponiveis(disciplina, matriculasAtuais) <= 0) {
       return { sucesso: false, mensagem: 'Não há vagas disponíveis nesta turma.' }
     }
 
@@ -109,7 +128,7 @@ export function AcademicoProvider({ children }) {
       }
     }
 
-    const conflito = matriculasAtivas
+    const conflito = matriculasAtivasAtuais
       .map((matricula) =>
         disciplinas.find((item) => item.id === matricula.disciplinaId),
       )
@@ -125,29 +144,31 @@ export function AcademicoProvider({ children }) {
       }
     }
 
-    setMatriculas((atuais) => [
-      ...atuais,
+    const novasMatriculas = [
+      ...matriculasAtuais,
       {
         id: `${disciplina.id}-${Date.now()}`,
         disciplinaId: disciplina.id,
         situacao: 'Ativa',
         data: new Date().toLocaleDateString('pt-BR'),
       },
-    ])
+    ]
+    matriculasRef.current = novasMatriculas
+    setMatriculas(novasMatriculas)
     return { sucesso: true, mensagem: 'Matrícula realizada com sucesso.' }
   }
 
   const cancelarMatricula = (matriculaId) => {
-    const matricula = matriculas.find((item) => item.id === matriculaId)
+    const matricula = matriculasRef.current.find((item) => item.id === matriculaId)
     if (!matricula || matricula.situacao !== 'Ativa') {
       return { sucesso: false, mensagem: 'Esta matrícula não está ativa.' }
     }
 
-    setMatriculas((atuais) =>
-      atuais.map((item) =>
-        item.id === matriculaId ? { ...item, situacao: 'Cancelada' } : item,
-      ),
+    const matriculasAtualizadas = matriculasRef.current.map((item) =>
+      item.id === matriculaId ? { ...item, situacao: 'Cancelada' } : item,
     )
+    matriculasRef.current = matriculasAtualizadas
+    setMatriculas(matriculasAtualizadas)
     return { sucesso: true, mensagem: 'Matrícula cancelada com sucesso.' }
   }
 
@@ -168,6 +189,8 @@ export function AcademicoProvider({ children }) {
   )
 }
 
+// O hook permanece junto ao contexto para preservar a API pública do módulo.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAcademico() {
   const contexto = useContext(AcademicoContext)
   if (!contexto) {
