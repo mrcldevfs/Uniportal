@@ -24,6 +24,21 @@ export function analisarDisciplina(disciplina, contexto) {
     }
   })
 
+  const conflito = matriculasAtivas
+    .map((matricula) => disciplinas.find((item) => item.id === matricula.disciplinaId))
+    .find((matriculaDisciplina) =>
+      matriculaDisciplina
+        ? matriculaDisciplina.horarios.some((horario) =>
+            disciplina.horarios.some(
+              (outroHorario) =>
+                horario.dia === outroHorario.dia &&
+                horario.inicio < outroHorario.fim &&
+                outroHorario.inicio < horario.fim,
+            ),
+          )
+        : false,
+    )
+
   return {
     disciplina,
     capacidade,
@@ -34,6 +49,7 @@ export function analisarDisciplina(disciplina, contexto) {
     concluida: disciplinasConcluidas.has(disciplina.id),
     preRequisitos,
     preRequisitosCumpridos: preRequisitos.every((requisito) => requisito.cumprido),
+    conflitoHorario: conflito?.nome ?? null,
     horarios: disciplina.horarios.map(detalharHorario),
     horasSemanais: horasSemanais(disciplina.horarios),
   }

@@ -127,6 +127,7 @@ function DisciplinasDisponiveis() {
               <label htmlFor="filtro-vagas" className="form-check-label">
                 Somente com vagas
               </label>
+            </div>
 
             <button type="button" className="btn btn-outline-secondary" onClick={limparFiltros}>
               Limpar filtros
@@ -178,15 +179,34 @@ function DisciplinasDisponiveis() {
                       {!analise.preRequisitosCumpridos && (
                         <span className="badge text-bg-warning">Pré-requisito pendente</span>
                       )}
+                      {analise.conflitoHorario && (
+                        <span className="badge text-bg-danger">Conflito com {analise.conflitoHorario}</span>
+                      )}
                     </div>
 
                     <div className="d-flex flex-wrap gap-2 mt-auto">
                       <button
                         className="btn btn-primary"
-                        disabled={analise.matriculado || analise.vagas <= 0}
+                        disabled={
+                          analise.matriculado ||
+                          analise.concluida ||
+                          analise.vagas <= 0 ||
+                          !analise.preRequisitosCumpridos ||
+                          Boolean(analise.conflitoHorario)
+                        }
                         onClick={() => realizarMatricula(disciplina.id)}
                       >
-                        {analise.matriculado ? 'Matriculado' : 'Matricular-se'}
+                        {analise.matriculado
+                          ? 'Matriculado'
+                          : analise.concluida
+                            ? 'Já cursada'
+                            : analise.vagas <= 0
+                              ? 'Sem vagas'
+                              : !analise.preRequisitosCumpridos
+                                ? 'Pré-requisitos pendentes'
+                                : analise.conflitoHorario
+                                  ? 'Conflito de horário'
+                                  : 'Matricular-se'}
                       </button>
 
                       <button

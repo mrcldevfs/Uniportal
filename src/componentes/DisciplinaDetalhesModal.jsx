@@ -119,10 +119,26 @@ function DisciplinaDetalhesModal({ analise, onFechar, onMatricular }) {
               <button
                 type="button"
                 className="btn btn-primary"
-                disabled={analise.matriculado || analise.vagas <= 0}
+                disabled={
+                  analise.matriculado ||
+                  analise.concluida ||
+                  analise.vagas <= 0 ||
+                  !analise.preRequisitosCumpridos ||
+                  Boolean(analise.conflitoHorario)
+                }
                 onClick={() => onMatricular(disciplina.id)}
               >
-                {analise.matriculado ? 'Matriculado' : 'Matricular-se'}
+                {analise.matriculado
+                  ? 'Matriculado'
+                  : analise.concluida
+                    ? 'Já cursada'
+                    : analise.vagas <= 0
+                      ? 'Sem vagas'
+                      : !analise.preRequisitosCumpridos
+                        ? 'Pré-requisitos pendentes'
+                        : analise.conflitoHorario
+                          ? 'Conflito de horário'
+                          : 'Matricular-se'}
               </button>
             </div>
           </div>
