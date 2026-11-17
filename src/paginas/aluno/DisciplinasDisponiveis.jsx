@@ -184,7 +184,8 @@ function DisciplinasDisponiveis() {
                     <div className="d-flex flex-wrap gap-2 mt-auto">
                       <button
                         className="btn btn-primary"
-                        disabled={analise.matriculado || analise.vagas <= 0}
+                        disabled={analise.matriculado || analise.concluida || analise.vagas <= 0}
+
                         onClick={() => realizarMatricula(disciplina.id)}
                       >
                         {analise.matriculado ? 'Matriculado' : 'Matricular-se'}
