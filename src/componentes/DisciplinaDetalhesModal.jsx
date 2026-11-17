@@ -119,7 +119,7 @@ function DisciplinaDetalhesModal({ analise, onFechar, onMatricular }) {
               <button
                 type="button"
                 className="btn btn-primary"
-                disabled={analise.matriculado || analise.vagas <= 0}
+                disabled={analise.matriculado ? 'Matriculado' : analise.concluida ? 'Já cursada' : 'Matricular-se'}
                 onClick={() => onMatricular(disciplina.id)}
               >
                 {analise.matriculado ? 'Matriculado' : 'Matricular-se'}
