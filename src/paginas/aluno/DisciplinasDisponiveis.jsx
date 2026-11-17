@@ -2,8 +2,13 @@ import { useState } from 'react'
 import { useAcademico } from '../../dados/AcademicoContext'
 
 function DisciplinasDisponiveis() {
-  const { disciplinas, matriculasAtivas, vagasDisponiveis, matricular } =
-    useAcademico()
+  const {
+    disciplinas,
+    disciplinasConcluidas,
+    matriculasAtivas,
+    vagasDisponiveis,
+    matricular,
+  } = useAcademico()
   const [mensagem, setMensagem] = useState(null)
 
   const realizarMatricula = (disciplinaId) => {
@@ -31,6 +36,7 @@ function DisciplinasDisponiveis() {
           const matriculado = matriculasAtivas.some(
             (matricula) => matricula.disciplinaId === disciplina.id,
           )
+          const concluida = disciplinasConcluidas.has(disciplina.id)
           const vagas = vagasDisponiveis(disciplina)
           return (
             <div className="col-md-6" key={disciplina.id}>
@@ -59,10 +65,14 @@ function DisciplinasDisponiveis() {
                   </p>
                   <button
                     className="btn btn-primary"
-                    disabled={matriculado || vagas <= 0}
+                    disabled={matriculado || concluida || vagas <= 0}
                     onClick={() => realizarMatricula(disciplina.id)}
                   >
-                    {matriculado ? 'Matriculado' : 'Matricular-se'}
+                    {matriculado
+                      ? 'Matriculado'
+                      : concluida
+                        ? 'Disciplina concluída'
+                        : 'Matricular-se'}
                   </button>
                 </div>
               </article>
