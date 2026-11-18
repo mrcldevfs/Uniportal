@@ -6,8 +6,7 @@ function Matriculas() {
   const [mensagem, setMensagem] = useState(null)
 
   const cancelar = (matriculaId) => {
-    const resultado = cancelarMatricula(matriculaId)
-    setMensagem(resultado)
+    setMensagem(cancelarMatricula(matriculaId))
   }
 
   return (
@@ -31,9 +30,8 @@ function Matriculas() {
             </thead>
             <tbody>
               {matriculas.map((matricula) => {
-                const disciplina = disciplinas.find(
-                  (item) => item.id === matricula.disciplinaId,
-                )
+                const turmaId = matricula.turmaId ?? matricula.disciplinaId
+                const disciplina = disciplinas.find((item) => String(item.id) === String(turmaId))
                 return (
                   <tr key={matricula.id}>
                     <td>{disciplina?.codigo} - {disciplina?.nome}</td>
