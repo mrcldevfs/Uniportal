@@ -71,4 +71,38 @@ describe('regras acadêmicas de matrícula', () => {
     ]
     expect(obterVagasDisponiveis(disciplina, matriculas)).toBe(2)
   })
+
+  it('permite novas matrículas depois do cancelamento', () => {
+    const disciplina = disciplinas.find((item) => item.id === 'algoritmos-2')
+    const matriculas = [
+      { disciplinaId: disciplina.id, situacao: 'Ativa' },
+      { disciplinaId: disciplina.id, situacao: 'Cancelada' },
+    ]
+    const restantes = matriculas.map((matricula) =>
+      matricula === matriculas[0] ? { ...matricula, situacao: 'Cancelada' } : matricula,
+    )
+    expect(validarMatricula(disciplina.id, restantes).sucesso).toBe(true)
+  })
+
+  it('não conta matrículas canceladas como ocupação mesmo com várias matrículas antigas', () => {
+    const disciplina = disciplinas.find((item) => item.id === 'algoritmos-2')
+    const matriculas = [
+      { disciplinaId: disciplina.id, situacao: 'Ativa' },
+      { disciplinaId: disciplina.id, situacao: 'Cancelada' },
+      { disciplinaId: disciplina.id, situacao: 'Cancelada' },
+      { disciplinaId: 'disciplina-removida', situacao: 'Ativa' },
+    ]
+    expect(obterVagasDisponiveis(disciplina, matriculas)).toBe(2)
+  })
+
+  it('múltiplas matrículas ativas ocupam vagas até a capacidade', () => {
+    const disciplina = disciplinas.find((item) => item.id === 'algoritmos-2')
+    const matriculas = [
+      { disciplinaId: disciplina.id, situacao: 'Ativa' },
+      { disciplinaId: disciplina.id, situacao: 'Ativa' },
+      { disciplinaId: disciplina.id, situacao: 'Ativa' },
+    ]
+    expect(obterVagasDisponiveis(disciplina, matriculas)).toBe(0)
+    expect(validarMatricula(disciplina.id, matriculas).sucesso).toBe(false)
+  })
 })

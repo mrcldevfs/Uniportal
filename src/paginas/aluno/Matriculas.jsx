@@ -2,12 +2,16 @@ import { useState } from 'react'
 import { useAcademico } from '../../dados/AcademicoContext'
 
 function Matriculas() {
-  const { disciplinas, matriculas, cancelarMatricula } = useAcademico()
+  const { disciplinas, matriculas, cancelarMatricula, concluirDisciplina } = useAcademico()
   const [mensagem, setMensagem] = useState(null)
 
   const cancelar = (matriculaId) => {
     const resultado = cancelarMatricula(matriculaId)
     setMensagem(resultado)
+  }
+
+  const concluir = (disciplinaId) => {
+    setMensagem(concluirDisciplina(disciplinaId))
   }
 
   return (
@@ -36,21 +40,33 @@ function Matriculas() {
                 )
                 return (
                   <tr key={matricula.id}>
-                    <td>{disciplina?.codigo} - {disciplina?.nome}</td>
+                        <td>
+                          {disciplina
+                            ? `${disciplina.codigo} - ${disciplina.nome}`
+                            : `Disciplina removida (ID: ${matricula.disciplinaId})`}
+                        </td>
                     <td>{matricula.data}</td>
                     <td>
-                      <span className={`badge text-bg-${matricula.situacao === 'Ativa' ? 'success' : 'secondary'}`}>
+                          <span className={`badge text-bg-${matricula.situacao === 'Ativa' ? 'success' : matricula.situacao === 'Concluída' ? 'primary' : 'secondary'}`}>
                         {matricula.situacao}
                       </span>
                     </td>
                     <td className="text-end">
                       {matricula.situacao === 'Ativa' && (
-                        <button
-                          className="btn btn-outline-danger btn-sm"
-                          onClick={() => cancelar(matricula.id)}
-                        >
-                          Cancelar matrícula
-                        </button>
+                            <div className="d-flex justify-content-end gap-2">
+                              <button
+                                className="btn btn-outline-success btn-sm"
+                                onClick={() => concluir(matricula.disciplinaId)}
+                              >
+                                Concluir disciplina
+                              </button>
+                              <button
+                                className="btn btn-outline-danger btn-sm"
+                                onClick={() => cancelar(matricula.id)}
+                              >
+                                Cancelar matrícula
+                              </button>
+                            </div>
                       )}
                     </td>
                   </tr>

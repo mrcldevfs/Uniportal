@@ -29,21 +29,46 @@ const turmasIniciais = [
   }
 ];
 
+function numeroNaoNegativo(valor) {
+  const numero = Number(valor);
+  return Number.isFinite(numero) ? Math.max(0, Math.floor(numero)) : 0;
+}
+
+export function normalizarTurma(turma) {
+  const vagasTotais = numeroNaoNegativo(turma.vagasTotais);
+  const vagasOcupadas = Math.min(
+    numeroNaoNegativo(turma.vagasOcupadas),
+    vagasTotais,
+  );
+
+  return {
+    ...turma,
+    vagasTotais,
+    vagasOcupadas,
+  };
+}
+
 export const turmaServico = {
   listar() {
-    const dados = localStorage.getItem(CHAVE_STORAGE);
+    let dados;
+    try {
+      dados = localStorage.getItem(CHAVE_STORAGE);
+    } catch {
+      return turmasIniciais.map(normalizarTurma);
+    }
     if (!dados) {
       localStorage.setItem(CHAVE_STORAGE, JSON.stringify(turmasIniciais));
-      return turmasIniciais;
+      return turmasIniciais.map(normalizarTurma);
     }
-    
-    // Garante que registros antigos tenham as propriedades de vagas preenchidas
-    const turmas = JSON.parse(dados);
-    return turmas.map(t => ({
-      ...t,
-      vagasTotais: Number(t.vagasTotais) || 40,
-      vagasOcupadas: Number(t.vagasOcupadas) || 0
-    }));
+
+    try {
+      const turmas = JSON.parse(dados);
+      if (!Array.isArray(turmas)) throw new Error('Formato inválido');
+      return turmas.map(normalizarTurma);
+    } catch {
+      localStorage.setItem(CHAVE_STORAGE, JSON.stringify(turmasIniciais));
+      return turmasIniciais.map(normalizarTurma);
+    }
   },
 
   salvar(turma) {
@@ -51,13 +76,15 @@ export const turmaServico = {
     if (turma.id) {
       const index = turmas.findIndex(t => t.id === turma.id);
       if (index !== -1) {
-        turmas[index] = turma;
+        const ocupadasInformadas =
+          turma.vagasOcupadas === '' || turma.vagasOcupadas === undefined
+            ? turmas[index].vagasOcupadas
+            : turma.vagasOcupadas;
+        turmas[index] = normalizarTurma({ ...turmas[index], ...turma, vagasOcupadas: ocupadasInformadas });
       }
     } else {
       turma.id = Date.now();
-      turma.vagasTotais = Number(turma.vagasTotais) || 0;
-      turma.vagasOcupadas = Number(turma.vagasOcupadas) || 0;
-      turmas.push(turma);
+      turmas.push(normalizarTurma(turma));
     }
     localStorage.setItem(CHAVE_STORAGE, JSON.stringify(turmas));
     return turma;

@@ -42,6 +42,10 @@ function Turmas() {
       alert('Por favor, preencha todos os campos obrigatórios!');
       return;
     }
+    if (Number(vagasTotais) <= 0) {
+      alert('A turma deve possuir pelo menos uma vaga.');
+      return;
+    }
 
     const turmaDados = {
       id: idEdicao,
@@ -128,11 +132,11 @@ function Turmas() {
           </div>
           <div>
             <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Vagas Totais</label>
-            <input type="number" value={vagasTotais} onChange={e => setVagasTotais(e.target.value)} placeholder="Ex: 40" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
+            <input type="number" min="1" value={vagasTotais} onChange={e => setVagasTotais(e.target.value)} placeholder="Ex: 40" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
           </div>
           <div>
             <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Vagas Ocupadas</label>
-            <input type="number" value={vagasOcupadas} onChange={e => setVagasOcupadas(e.target.value)} placeholder="Ex: 10" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
+            <input type="number" min="0" value={vagasOcupadas} onChange={e => setVagasOcupadas(e.target.value)} placeholder="Ex: 10" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
           </div>
           
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', gridColumn: '1 / -1' }}>

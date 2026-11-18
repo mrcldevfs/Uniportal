@@ -134,6 +134,17 @@ export function AcademicoProvider({ children }) {
     return Array.isArray(salvas) ? salvas : []
   })
   const matriculasRef = useRef(matriculas)
+  const [concluidas, setConcluidas] = useState(() => {
+    const salvas = getData('disciplinasConcluidas')
+    if (!Array.isArray(salvas)) return new Set(disciplinasConcluidas)
+
+    const idsValidos = salvas.filter((id) => disciplinas.some((disciplina) => disciplina.id === id))
+    const conjunto = new Set(disciplinasConcluidas)
+    idsValidos.forEach((id) => conjunto.add(id))
+    disciplinasConcluidas.clear()
+    conjunto.forEach((id) => disciplinasConcluidas.add(id))
+    return conjunto
+  })
 
   const atualizarMatriculas = (proximasMatriculas) => {
     matriculasRef.current = proximasMatriculas
@@ -181,14 +192,46 @@ export function AcademicoProvider({ children }) {
     return { sucesso: true, mensagem: 'Matrícula cancelada com sucesso.' }
   }
 
+  const concluirDisciplina = (disciplinaId) => {
+    const disciplina = disciplinas.find((item) => item.id === disciplinaId)
+    if (!disciplina) {
+      return { sucesso: false, mensagem: 'Disciplina não encontrada.' }
+    }
+    if (concluidas.has(disciplinaId)) {
+      return { sucesso: false, mensagem: 'Esta disciplina já está registrada como concluída.' }
+    }
+
+    const proximasConcluidas = new Set(concluidas)
+    proximasConcluidas.add(disciplinaId)
+    disciplinasConcluidas.clear()
+    proximasConcluidas.forEach((id) => disciplinasConcluidas.add(id))
+    setConcluidas(proximasConcluidas)
+    saveData('disciplinasConcluidas', Array.from(proximasConcluidas))
+
+    const matriculasAtualizadas = matriculasRef.current.map((matricula) =>
+      matricula.disciplinaId === disciplinaId && matricula.situacao === 'Ativa'
+        ? { ...matricula, situacao: 'Concluída' }
+        : matricula,
+    )
+    atualizarMatriculas(matriculasAtualizadas)
+
+    return { sucesso: true, mensagem: `${disciplina.nome} registrada como concluída.` }
+  }
+
+  const registrarDisciplinaConcluida = concluirDisciplina
+  const marcarDisciplinaConcluida = concluirDisciplina
+
   const valor = {
     disciplinas,
     matriculas,
     matriculasAtivas,
-    disciplinasConcluidas,
+    disciplinasConcluidas: concluidas,
     vagasDisponiveis,
     matricular,
     cancelarMatricula,
+    concluirDisciplina,
+    registrarDisciplinaConcluida,
+    marcarDisciplinaConcluida,
   }
 
   return (
