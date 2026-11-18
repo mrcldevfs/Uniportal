@@ -22,7 +22,8 @@ export function getData(key) {
 // de uma lista intencionalmente vazia.
 export function hasData(key) {
   try {
-    return obterArmazenamento()?.getItem(`${PREFIX}${key}`) !== null
+    const armazenamento = obterArmazenamento()
+    return armazenamento ? armazenamento.getItem(`${PREFIX}${key}`) !== null : false
   } catch (error) {
     console.error(`Erro ao verificar os dados de "${key}":`, error)
     return false
