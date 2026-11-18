@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { gerarId, obterDadosInstitucionais, salvarDadosInstitucionais } from '../../services/institution'
+import { turmaServico } from '../../services/turmaServico'
 
 const formularioVazio = { nome: '', email: '', especialidade: '' }
 
@@ -45,6 +46,20 @@ function Professores() {
     }
     if (professorEditando) {
       setProfessores((atuais) => atuais.map((professor) => professor.id === professorEditando.id ? { ...registro, id: professor.id } : professor))
+
+      const turmas = turmaServico.listar()
+      turmas.forEach((turma) => {
+        if (
+          String(turma.professorId) === String(professorEditando.id) ||
+          turma.professor === professorEditando.nome
+        ) {
+          turmaServico.salvar({
+            ...turma,
+            professorId: professorEditando.id,
+            professor: registro.nome,
+          })
+        }
+      })
       setMensagem('Professor atualizado com sucesso.')
     } else {
       setProfessores((atuais) => [...atuais, { ...registro, id: gerarId('prof') }])
@@ -54,8 +69,19 @@ function Professores() {
   }
 
   function excluirProfessor(professor) {
+    const turmas = turmaServico.listar()
+    const turmaVinculada = turmas.find((turma) =>
+      String(turma.professorId) === String(professor.id) ||
+      turma.professor === professor.nome,
+    )
+
+    if (turmaVinculada) {
+      setMensagem(`Não é possível excluir: o professor está vinculado à turma ${turmaVinculada.codigo}.`)
+      return
+    }
+
     if (!window.confirm(`Deseja excluir o cadastro de ${professor.nome}?`)) return
-    setProfessores((atuais) => atuais.filter((item) => item.id !== professor.id))
+    setProfessores((atuais) => atuais.filter((item) => String(item.id) !== String(professor.id)))
     setMensagem('Professor removido com sucesso.')
   }
 

@@ -1,9 +1,9 @@
 // Mostra a situação de vagas de uma turma: texto + cor (a cor nunca é a única informação).
-function BadgeVagas({ vagas, capacidade }) {
+function BadgeVagas({ vagas, capacidade, ocupadas = 0 }) {
   if (vagas <= 0) {
     return (
       <span className="badge text-bg-danger">
-        {capacidade > 0 ? `Lotada · 0/${capacidade}` : 'Sem vagas'}
+        {capacidade > 0 ? `Lotada · ${ocupadas}/${capacidade}` : 'Sem vagas'}
       </span>
     )
   }

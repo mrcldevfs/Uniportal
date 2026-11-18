@@ -1,18 +1,19 @@
-
 import { useState, useEffect } from 'react'
 import { turmaServico } from '../../services/turmaServico'
 import { obterDadosInstitucionais } from '../../services/institution'
+import { getData } from '../../services/storage'
 import { DIAS_DA_GRADE } from '../../services/horarios'
 
 function Turmas() {
   const [turmas, setTurmas] = useState([])
   const [disciplinas] = useState(() => obterDadosInstitucionais('disciplinas'))
+  const [professores] = useState(() => obterDadosInstitucionais('professores'))
 
   const [idEdicao, setIdEdicao] = useState(null)
   const [disciplinaId, setDisciplinaId] = useState('')
   const [codigo, setCodigo] = useState('')
   const [disciplina, setDisciplina] = useState('')
-  const [professor, setProfessor] = useState('')
+  const [professorId, setProfessorId] = useState('')
   const [periodo, setPeriodo] = useState('')
   const [turno, setTurno] = useState('Noturno')
   const [dias, setDias] = useState([])
@@ -31,7 +32,7 @@ function Turmas() {
     setDisciplinaId('')
     setCodigo('')
     setDisciplina('')
-    setProfessor('')
+    setProfessorId('')
     setPeriodo('')
     setTurno('Noturno')
     setDias([])
@@ -56,24 +57,59 @@ function Turmas() {
 
   function handleSubmit(e) {
     e.preventDefault()
-    if (!codigo || !disciplinaId || !professor || !dias.length || !inicio || !fim || !vagasTotais) {
+    if (!codigo || !disciplinaId || !professorId || !dias.length || !inicio || !fim || !vagasTotais) {
       alert('Por favor, preencha todos os campos obrigatórios!')
+      return
+    }
+
+    const disciplinaSelecionada = disciplinas.find((item) => String(item.id) === String(disciplinaId))
+    const professorSelecionado = professores.find((item) => String(item.id) === String(professorId))
+
+    if (!disciplinaSelecionada) {
+      alert('Selecione uma disciplina válida.')
+      return
+    }
+    if (!professorSelecionado) {
+      alert('Selecione um professor válido.')
+      return
+    }
+
+    const turmaAtual = idEdicao
+      ? turmas.find((item) => String(item.id) === String(idEdicao))
+      : null
+    const vagasOcupadas = turmaAtual?.vagasOcupadas || 0
+    const vagasSolicitadas = Number(vagasTotais)
+
+    if (vagasSolicitadas < vagasOcupadas) {
+      alert(`A capacidade não pode ser menor que a ocupação atual (${vagasOcupadas} vaga(s)).`)
+      return
+    }
+
+    const codigoNormalizado = codigo.trim().toUpperCase()
+    const codigoDuplicado = turmas.find((turma) =>
+      String(turma.codigo).trim().toUpperCase() === codigoNormalizado &&
+      (!idEdicao || String(turma.id) !== String(idEdicao)),
+    )
+
+    if (codigoDuplicado) {
+      alert('Já existe uma turma cadastrada com esse código.')
       return
     }
 
     turmaServico.salvar({
       id: idEdicao,
       disciplinaId,
-      codigo,
-      disciplina,
-      professor,
+      codigo: codigoNormalizado,
+      disciplina: disciplinaSelecionada.nome,
+      professorId,
+      professor: professorSelecionado.nome,
       periodo,
       turno,
       dias,
       inicio,
       fim,
       vagasTotais: Number(vagasTotais),
-      vagasOcupadas: 0,
+      vagasOcupadas: turmaAtual?.vagasOcupadas || 0,
     })
     limparFormulario()
     carregarTurmas()
@@ -82,13 +118,17 @@ function Turmas() {
 
   function handleEditar(turma) {
     const disciplinaEncontrada = disciplinas.find(
-      item => item.id === turma.disciplinaId || item.nome === turma.disciplina
+      (item) => String(item.id) === String(turma.disciplinaId) || item.nome === turma.disciplina,
     )
+    const professorEncontrado = professores.find(
+      (item) => String(item.id) === String(turma.professorId) || item.nome === turma.professor,
+    )
+
     setIdEdicao(turma.id)
     setDisciplinaId(disciplinaEncontrada?.id || '')
     setCodigo(turma.codigo)
     setDisciplina(disciplinaEncontrada?.nome || turma.disciplina)
-    setProfessor(turma.professor)
+    setProfessorId(professorEncontrado?.id || '')
     setPeriodo(disciplinaEncontrada?.periodo || turma.periodo || '')
     setTurno(turma.turno)
     setDias(turma.dias || [])
@@ -99,6 +139,16 @@ function Turmas() {
   }
 
   function handleExcluir(id) {
+    const matriculas = getData('matriculas')
+    const matriculaVinculada = Array.isArray(matriculas) && matriculas.find((matricula) =>
+      String(matricula.turmaId ?? matricula.disciplinaId) === String(id),
+    )
+
+    if (matriculaVinculada) {
+      alert('Não é possível excluir esta turma: existem matrículas vinculadas ao histórico acadêmico.')
+      return
+    }
+
     if (confirm('Deseja realmente excluir esta turma?')) {
       turmaServico.remover(id)
       carregarTurmas()
@@ -136,8 +186,12 @@ function Turmas() {
 
           <div>
             <label>Professor Responsável</label>
-            <input type="text" value={professor} onChange={e => setProfessor(e.target.value)}
-              placeholder="Ex: Ana Souza" required style={estiloInput} />
+            <select value={professorId} onChange={e => setProfessorId(e.target.value)} required style={estiloInput}>
+              <option value="">Selecione um professor</option>
+              {professores.map(item => (
+                <option key={item.id} value={item.id}>{item.nome}</option>
+              ))}
+            </select>
           </div>
 
           <div>

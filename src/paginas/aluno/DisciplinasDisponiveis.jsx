@@ -156,7 +156,11 @@ function DisciplinasDisponiveis() {
                         {disciplina.codigo} - {disciplina.nome}
                       </h3>
                       <span className="align-self-start text-nowrap">
-                        <BadgeVagas vagas={analise.vagas} capacidade={analise.capacidade} />
+                        <BadgeVagas
+                          vagas={analise.vagas}
+                          capacidade={analise.capacidade}
+                          ocupadas={analise.ocupadas}
+                        />
                       </span>
                     </div>
 
@@ -174,6 +178,7 @@ function DisciplinasDisponiveis() {
                     </p>
 
                     <div className="d-flex flex-wrap gap-1 mb-3">
+                      {disciplina.semTurma && <span className="badge text-bg-secondary">Sem turma cadastrada</span>}
                       {analise.matriculado && <span className="badge text-bg-primary">Matriculado</span>}
                       {analise.concluida && <span className="badge text-bg-secondary">Já cursada</span>}
                       {!analise.preRequisitosCumpridos && (

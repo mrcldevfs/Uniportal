@@ -2,11 +2,11 @@ import { getData, hasData, saveData } from './storage'
 
 const dadosIniciais = {
   disciplinas: [
-    { id: 'disc-1', codigo: 'ADS101', nome: 'Algoritmos e Lógica de Programação', cargaHoraria: 80, creditos: 4, periodo: '1º período' },
-    { id: 'disc-2', codigo: 'ADS102', nome: 'Desenvolvimento Web', cargaHoraria: 80, creditos: 4, periodo: '2º período' },
-    { id: 'disc-3', codigo: 'ADS203', nome: 'Banco de Dados', cargaHoraria: 60, creditos: 3, periodo: '3º período' },
-    { id: 'disc-4', codigo: 'ADS204', nome: 'Engenharia de Software', cargaHoraria: 60, creditos: 3, periodo: '4º período' },
-    { id: 'disc-5', codigo: 'ADS305', nome: 'Redes de Computadores', cargaHoraria: 60, creditos: 3, periodo: '5º período' },
+    { id: 'disc-1', codigo: 'ADS101', nome: 'Algoritmos e Lógica de Programação', cargaHoraria: 80, creditos: 4, periodo: '1º período', preRequisitos: [] },
+    { id: 'disc-2', codigo: 'ADS102', nome: 'Desenvolvimento Web', cargaHoraria: 80, creditos: 4, periodo: '2º período', preRequisitos: ['disc-1'] },
+    { id: 'disc-3', codigo: 'ADS203', nome: 'Banco de Dados', cargaHoraria: 60, creditos: 3, periodo: '3º período', preRequisitos: ['disc-1'] },
+    { id: 'disc-4', codigo: 'ADS204', nome: 'Engenharia de Software', cargaHoraria: 60, creditos: 3, periodo: '4º período', preRequisitos: ['disc-2'] },
+    { id: 'disc-5', codigo: 'ADS305', nome: 'Redes de Computadores', cargaHoraria: 60, creditos: 3, periodo: '5º período', preRequisitos: ['disc-3'] },
   ],
   professores: [
     { id: 'prof-1', nome: 'Ana Carolina Souza', email: 'ana.souza@uniportal.edu.br', especialidade: 'Desenvolvimento Web' },

@@ -90,7 +90,12 @@ export function validarMatricula(turmaId, matriculasAtuais, disciplinas, discipl
           mesmoId(idDaDisciplina(item), idDaDisciplinaNaMatricula(matricula, disciplinas)),
         )
     })
-    .find((oferta) => oferta && horariosConflitam(oferta.horarios, disciplina.horarios))
+    .find((oferta) =>
+      oferta &&
+      !mesmoId(oferta.id, disciplina.id) &&
+      !mesmoId(idDaDisciplina(oferta), disciplinaId) &&
+      horariosConflitam(oferta.horarios, disciplina.horarios),
+    )
 
   if (conflito) {
     return {
@@ -105,13 +110,12 @@ export function validarMatricula(turmaId, matriculasAtuais, disciplinas, discipl
 function turmasParaDisciplinas(turmas) {
   const disciplinasInstitucionais = obterDadosInstitucionais('disciplinas')
 
-  return turmas.map((turma) => {
+  const ofertas = turmas.map((turma) => {
     const disciplinaBase = disciplinasInstitucionais.find(
       (item) => mesmoId(item.id, turma.disciplinaId) || item.nome === turma.disciplina,
     )
 
     return {
-      // id identifica a oferta; disciplinaId identifica a disciplina institucional.
       id: String(turma.id),
       disciplinaId: disciplinaBase?.id ?? turma.disciplinaId ?? null,
       codigo: disciplinaBase?.codigo ?? turma.codigo,
@@ -123,7 +127,9 @@ function turmasParaDisciplinas(turmas) {
       professor: turma.professor,
       vagas: turma.vagasTotais,
       vagasOcupadas: turma.vagasOcupadas,
-      preRequisitos: disciplinaBase?.preRequisitos ?? [],
+      preRequisitos: Array.isArray(disciplinaBase?.preRequisitos)
+        ? disciplinaBase.preRequisitos.filter((id) => id !== '' && id !== null && id !== undefined)
+        : [],
       horarios: (turma.dias || []).map((dia) => ({
         dia,
         inicio: turma.inicio || '',
@@ -131,6 +137,28 @@ function turmasParaDisciplinas(turmas) {
       })),
     }
   })
+
+  const idsComTurma = new Set(ofertas.map((oferta) => String(oferta.disciplinaId)))
+  const disciplinasSemTurma = disciplinasInstitucionais
+    .filter((disciplina) => !idsComTurma.has(String(disciplina.id)))
+    .map((disciplina) => ({
+      id: `disciplina-${disciplina.id}`,
+      disciplinaId: disciplina.id,
+      codigo: disciplina.codigo,
+      codigoTurma: null,
+      nome: disciplina.nome,
+      cargaHoraria: disciplina.cargaHoraria,
+      creditos: disciplina.creditos,
+      periodo: disciplina.periodo,
+      professor: 'Não definida',
+      vagas: 0,
+      vagasOcupadas: 0,
+      preRequisitos: Array.isArray(disciplina.preRequisitos) ? disciplina.preRequisitos : [],
+      horarios: [],
+      semTurma: true,
+    }))
+
+  return [...ofertas, ...disciplinasSemTurma]
 }
 
 export function AcademicoProvider({ children }) {

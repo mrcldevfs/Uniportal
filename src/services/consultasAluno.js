@@ -29,16 +29,19 @@ export function analisarDisciplina(disciplina, contexto) {
   const ofertasMatriculadas = matriculasAtivas
     .map((matricula) => ofertaDaMatricula(matricula, disciplinas))
     .filter(Boolean)
-  const conflito = ofertasMatriculadas.find((oferta) =>
-    oferta.horarios.some((horario) =>
+  const conflito = ofertasMatriculadas.find((oferta) => {
+    if (mesmoId(oferta.id, disciplina.id)) return false
+    if (mesmoId(idDaDisciplina(oferta), idDaDisciplina(disciplina))) return false
+
+    return oferta.horarios.some((horario) =>
       disciplina.horarios.some(
         (outroHorario) =>
           horario.dia === outroHorario.dia &&
           horario.inicio < outroHorario.fim &&
           outroHorario.inicio < horario.fim,
       ),
-    ),
-  )
+    )
+  })
 
   return {
     disciplina,

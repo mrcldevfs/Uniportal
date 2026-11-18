@@ -20,8 +20,19 @@ function parsearHorario(texto) {
 }
 
 function normalizarTurma(t) {
+  const disciplinas = getData('disciplinas')
+  const professores = getData('professores')
+  const disciplinaLegada = !t.disciplinaId && t.disciplina
+    ? disciplinas.find((disciplina) => disciplina.nome === t.disciplina)
+    : null
+  const professorLegado = !t.professorId && t.professor
+    ? professores.find((professor) => professor.nome === t.professor)
+    : null
+
   const base = {
     ...t,
+    professorId: t.professorId ?? professorLegado?.id ?? null,
+    disciplinaId: t.disciplinaId ?? disciplinaLegada?.id ?? null,
     vagasTotais: Number(t.vagasTotais) || 40,
     vagasOcupadas: Number(t.vagasOcupadas) || 0,
   }
@@ -37,6 +48,7 @@ const turmasIniciais = [
     disciplina: 'Desenvolvimento Web',
     disciplinaId: 'disc-2',
     professor: 'Ana Carolina Souza',
+    professorId: 'prof-1',
     periodo: '2º período',
     turno: 'Noturno',
     dias: ['Segunda', 'Quarta'],
@@ -51,6 +63,7 @@ const turmasIniciais = [
     disciplina: 'Banco de Dados',
     disciplinaId: 'disc-3',
     professor: 'Bruno Martins',
+    professorId: 'prof-2',
     periodo: '3º período',
     turno: 'Noturno',
     dias: ['Terça', 'Quinta'],
@@ -77,7 +90,14 @@ export const turmaServico = {
       saveData(CHAVE, turmasIniciais)
       return turmasIniciais
     }
-    return dados.map(normalizarTurma)
+    const normalizadas = dados.map(normalizarTurma)
+    const mudou = normalizadas.some((turma, indice) => {
+      const original = dados[indice]
+      return String(turma.disciplinaId ?? '') !== String(original.disciplinaId ?? '') ||
+        String(turma.professorId ?? '') !== String(original.professorId ?? '')
+    })
+    if (mudou) saveData(CHAVE, normalizadas)
+    return normalizadas
   },
 
   salvar(turma) {
