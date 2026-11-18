@@ -1,4 +1,4 @@
-import { getData, saveData } from './storage'
+import { getData, hasData, saveData } from './storage'
 import { nomeDoDia } from './horarios'
 
 const CHAVE = 'turmas'
@@ -73,7 +73,7 @@ export const turmaServico = {
     }
 
     const dados = getData(CHAVE)
-    if (!dados || dados.length === 0) {
+    if (!hasData(CHAVE)) {
       saveData(CHAVE, turmasIniciais)
       return turmasIniciais
     }
