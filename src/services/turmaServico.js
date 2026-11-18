@@ -103,7 +103,7 @@ export const turmaServico = {
 
   atualizarOcupacao(turmaId, delta) {
     const turmas = this.listar()
-    const turma = turmas.find(t => t.id === turmaId)
+    const turma = turmas.find(t => String(t.id) === String(turmaId))
     if (!turma) return
     turma.vagasOcupadas = Math.max(0, turma.vagasOcupadas + delta)
     saveData(CHAVE, turmas)

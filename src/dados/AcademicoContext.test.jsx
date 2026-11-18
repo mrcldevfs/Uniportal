@@ -96,9 +96,9 @@ describe('regras acadêmicas de matrícula', () => {
 
   it('impede matrícula sem pré-requisitos', () => {
     const disciplina = disciplinas.find((item) => item.id === 'engenharia-software')
-    expect(
-      validarMatricula(disciplina.id, [], disciplinas, new Set()).mensagem,
-    ).toContain('Pré-requisito não atendido')
+    expect(validarMatricula(disciplina.id, [], disciplinas, new Set()).mensagem).toContain(
+      'Pré-requisito não atendido',
+    )
   })
 
   it('impede disciplina já concluída', () => {
@@ -115,5 +115,60 @@ describe('regras acadêmicas de matrícula', () => {
       { disciplinaId: disciplina.id, situacao: 'Cancelada' },
     ]
     expect(obterVagasDisponiveis(disciplina, matriculas)).toBe(2)
+  })
+})
+
+const ofertas = [
+  {
+    id: 'turma-101',
+    disciplinaId: 'disc-101',
+    codigo: 'INF101',
+    nome: 'Algoritmos I',
+    vagas: 10,
+    vagasOcupadas: 2,
+    preRequisitos: [],
+    horarios: [{ dia: 'Segunda', inicio: '08:00', fim: '10:00' }],
+  },
+  {
+    id: 'turma-202',
+    disciplinaId: 'disc-202',
+    codigo: 'INF202',
+    nome: 'Algoritmos II',
+    vagas: 8,
+    vagasOcupadas: 0,
+    preRequisitos: ['disc-101'],
+    horarios: [{ dia: 'Terça', inicio: '08:00', fim: '10:00' }],
+  },
+]
+
+describe('separação entre turma e disciplina institucional', () => {
+  it('usa o ID institucional para validar disciplinas concluídas', () => {
+    expect(validarMatricula('turma-101', [], ofertas, new Set(['disc-101'])).mensagem).toBe(
+      'Você já concluiu esta disciplina.',
+    )
+  })
+
+  it('valida pré-requisitos pelo ID institucional, não pelo ID da turma', () => {
+    expect(validarMatricula('turma-202', [], ofertas, new Set()).mensagem).toContain(
+      'Pré-requisito não atendido: Algoritmos I',
+    )
+    expect(validarMatricula('turma-202', [], ofertas, new Set(['disc-101'])).sucesso).toBe(true)
+  })
+
+  it('reconhece matrícula duplicada mesmo com IDs diferentes', () => {
+    const matriculas = [
+      { turmaId: 'turma-antiga-101', disciplinaId: 'disc-101', situacao: 'Ativa' },
+    ]
+    expect(validarMatricula('turma-101', matriculas, ofertas, new Set()).mensagem).toBe(
+      'Você já está matriculado nesta disciplina.',
+    )
+  })
+
+  it('desconta vagas da oferta correta sem confundir o ID institucional', () => {
+    const matriculas = [
+      { turmaId: 'turma-202', disciplinaId: 'disc-202', situacao: 'Ativa' },
+    ]
+    expect(obterVagasDisponiveis(ofertas[1], matriculas)).toBe(7)
+    expect(obterVagasDisponiveis(ofertas[0], matriculas)).toBe(8)
   })
 })
