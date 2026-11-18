@@ -85,24 +85,24 @@ function turmasParaDisciplinas(turmas) {
     )
 
     return {
-    // A matrícula identifica a oferta (turma), não apenas a disciplina.
-    id: String(turma.id),
-    disciplinaId: disciplinaBase?.id ?? turma.disciplinaId ?? null,
-    codigo: disciplinaBase?.codigo ?? turma.codigo,
-    codigoTurma: turma.codigo,
-    nome: disciplinaBase?.nome ?? turma.disciplina,
-    cargaHoraria: disciplinaBase?.cargaHoraria ?? null,
-    creditos: disciplinaBase?.creditos ?? null,
-    periodo: disciplinaBase?.periodo ?? turma.periodo,
-    professor: turma.professor,
-    vagas: turma.vagasTotais,
-    vagasOcupadas: turma.vagasOcupadas,
-    preRequisitos: disciplinaBase?.preRequisitos ?? [],
-    horarios: (turma.dias || []).map((dia) => ({
-      dia,
-      inicio: turma.inicio || '',
-      fim: turma.fim || '',
-    })),
+      // A matrícula identifica a oferta (turma), não apenas a disciplina.
+      id: String(turma.id),
+      disciplinaId: disciplinaBase?.id ?? turma.disciplinaId ?? null,
+      codigo: disciplinaBase?.codigo ?? turma.codigo,
+      codigoTurma: turma.codigo,
+      nome: disciplinaBase?.nome ?? turma.disciplina,
+      cargaHoraria: disciplinaBase?.cargaHoraria ?? null,
+      creditos: disciplinaBase?.creditos ?? null,
+      periodo: disciplinaBase?.periodo ?? turma.periodo,
+      professor: turma.professor,
+      vagas: turma.vagasTotais,
+      vagasOcupadas: turma.vagasOcupadas,
+      preRequisitos: disciplinaBase?.preRequisitos ?? [],
+      horarios: (turma.dias || []).map((dia) => ({
+        dia,
+        inicio: turma.inicio || '',
+        fim: turma.fim || '',
+      })),
     }
   })
 }
