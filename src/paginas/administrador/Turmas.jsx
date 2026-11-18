@@ -1,10 +1,17 @@
+
 import { useState, useEffect } from 'react';
 import { turmaServico } from '../../services/turmaServico';
+import { obterDadosInstitucionais } from '../../services/institution';
 
 function Turmas() {
   const [turmas, setTurmas] = useState([]);
+  const [disciplinas] = useState(() =>
+    obterDadosInstitucionais('disciplinas')
+  );
+
   const [idEdicao, setIdEdicao] = useState(null);
-  
+  const [disciplinaId, setDisciplinaId] = useState('');
+
   const [codigo, setCodigo] = useState('');
   const [disciplina, setDisciplina] = useState('');
   const [professor, setProfessor] = useState('');
@@ -25,6 +32,7 @@ function Turmas() {
 
   function limparFormulario() {
     setIdEdicao(null);
+    setDisciplinaId('');
     setCodigo('');
     setDisciplina('');
     setProfessor('');
@@ -36,15 +44,29 @@ function Turmas() {
     setVagasOcupadas('');
   }
 
+  function handleSelecionarDisciplina(e) {
+    const id = e.target.value;
+    const selecionada = disciplinas.find(
+      (item) => item.id === id
+    );
+
+    setDisciplinaId(id);
+    setDisciplina(selecionada?.nome || '');
+    setPeriodo(selecionada?.periodo || '');
+  }
+
   function handleSubmit(e) {
     e.preventDefault();
-    if (!codigo || !disciplina || !professor || !periodo || !diasSemana || !horario || !vagasTotais) {
+
+    if (!codigo || !disciplinaId || !professor || !periodo ||
+        !diasSemana || !horario || !vagasTotais) {
       alert('Por favor, preencha todos os campos obrigatórios!');
       return;
     }
 
     const turmaDados = {
       id: idEdicao,
+      disciplinaId,
       codigo,
       disciplina,
       professor,
@@ -53,26 +75,39 @@ function Turmas() {
       diasSemana,
       horario,
       vagasTotais: Number(vagasTotais),
-      vagasOcupadas: Number(vagasOcupadas) || 0
+      vagasOcupadas: Number(vagasOcupadas) || 0,
     };
 
     turmaServico.salvar(turmaDados);
     limparFormulario();
     carregarTurmas();
-    alert(idEdicao ? 'Turma atualizada com sucesso!' : 'Turma cadastrada com sucesso!');
+
+    alert(
+      idEdicao
+        ? 'Turma atualizada com sucesso!'
+        : 'Turma cadastrada com sucesso!'
+    );
   }
 
   function handleEditar(turma) {
+    const disciplinaEncontrada = disciplinas.find(
+      (item) =>
+        item.id === turma.disciplinaId ||
+        item.nome === turma.disciplina
+    );
+
     setIdEdicao(turma.id);
+    setDisciplinaId(disciplinaEncontrada?.id || '');
     setCodigo(turma.codigo);
-    setDisciplina(turma.disciplina);
+    setDisciplina(disciplinaEncontrada?.nome || turma.disciplina);
     setProfessor(turma.professor);
-    setPeriodo(turma.periodo);
+    setPeriodo(disciplinaEncontrada?.periodo || turma.periodo);
     setTurno(turma.turno);
     setDiasSemana(turma.diasSemana);
     setHorario(turma.horario);
     setVagasTotais(turma.vagasTotais);
     setVagasOcupadas(turma.vagasOcupadas);
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -87,60 +122,157 @@ function Turmas() {
     <div style={{ padding: '24px' }}>
       <div style={{ marginBottom: '24px' }}>
         <h2>Gestão de Turmas e Ofertas (Pessoa 2)</h2>
-        <p style={{ color: '#666' }}>Criação de turmas, associação de disciplinas, professores, horários e controlo de vagas.</p>
+        <p style={{ color: '#666' }}>
+          Criação de turmas, associação de disciplinas, professores,
+          horários e controlo de vagas.
+        </p>
       </div>
 
-      {/* Formulário de Cadastro / Edição */}
-      <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', marginBottom: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+      <div style={{
+        background: '#fff',
+        padding: '20px',
+        borderRadius: '8px',
+        marginBottom: '24px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+      }}>
         <h3>{idEdicao ? 'Editar Turma' : 'Nova Turma / Oferta'}</h3>
-        <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginTop: '16px' }}>
+
+        <form
+          onSubmit={handleSubmit}
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '16px',
+            marginTop: '16px'
+          }}
+        >
           <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Código da Turma</label>
-            <input type="text" value={codigo} onChange={e => setCodigo(e.target.value)} placeholder="Ex: TURMA-A" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
+            <label>Código da Turma</label>
+            <input
+              type="text"
+              value={codigo}
+              onChange={(e) => setCodigo(e.target.value)}
+              placeholder="Ex: TURMA-A"
+              required
+              style={estiloInput}
+            />
           </div>
+
           <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Disciplina</label>
-            <input type="text" value={disciplina} onChange={e => setDisciplina(e.target.value)} placeholder="Ex: Desenvolvimento Web" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
+            <label>Disciplina</label>
+            <select
+              value={disciplinaId}
+              onChange={handleSelecionarDisciplina}
+              required
+              style={estiloInput}
+            >
+              <option value="">Selecione uma disciplina</option>
+              {disciplinas.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.codigo} - {item.nome}
+                </option>
+              ))}
+            </select>
           </div>
+
           <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Professor Responsável</label>
-            <input type="text" value={professor} onChange={e => setProfessor(e.target.value)} placeholder="Ex: Ana Souza" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
+            <label>Professor Responsável</label>
+            <input
+              type="text"
+              value={professor}
+              onChange={(e) => setProfessor(e.target.value)}
+              placeholder="Ex: Ana Souza"
+              required
+              style={estiloInput}
+            />
           </div>
+
           <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Período</label>
-            <input type="text" value={periodo} onChange={e => setPeriodo(e.target.value)} placeholder="Ex: 2º período" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
+            <label>Período</label>
+            <input
+              type="text"
+              value={periodo}
+              readOnly
+              style={{ ...estiloInput, background: '#eee' }}
+            />
           </div>
+
           <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Turno</label>
-            <select value={turno} onChange={e => setTurno(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}>
+            <label>Turno</label>
+            <select
+              value={turno}
+              onChange={(e) => setTurno(e.target.value)}
+              style={estiloInput}
+            >
               <option value="Matutino">Matutino</option>
               <option value="Vespertino">Vespertino</option>
               <option value="Noturno">Noturno</option>
             </select>
           </div>
+
           <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Dias da Semana</label>
-            <input type="text" value={diasSemana} onChange={e => setDiasSemana(e.target.value)} placeholder="Ex: Seg e Qua" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
+            <label>Dias da Semana</label>
+            <input
+              type="text"
+              value={diasSemana}
+              onChange={(e) => setDiasSemana(e.target.value)}
+              placeholder="Ex: Seg e Qua"
+              required
+              style={estiloInput}
+            />
           </div>
+
           <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Horário</label>
-            <input type="text" value={horario} onChange={e => setHorario(e.target.value)} placeholder="Ex: 19:10 - 22:35" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
+            <label>Horário</label>
+            <input
+              type="text"
+              value={horario}
+              onChange={(e) => setHorario(e.target.value)}
+              placeholder="Ex: 19:10 - 22:35"
+              required
+              style={estiloInput}
+            />
           </div>
+
           <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Vagas Totais</label>
-            <input type="number" value={vagasTotais} onChange={e => setVagasTotais(e.target.value)} placeholder="Ex: 40" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
+            <label>Vagas Totais</label>
+            <input
+              type="number"
+              min="1"
+              value={vagasTotais}
+              onChange={(e) => setVagasTotais(e.target.value)}
+              required
+              style={estiloInput}
+            />
           </div>
+
           <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Vagas Ocupadas</label>
-            <input type="number" value={vagasOcupadas} onChange={e => setVagasOcupadas(e.target.value)} placeholder="Ex: 10" style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
+            <label>Vagas Ocupadas</label>
+            <input
+              type="number"
+              min="0"
+              value={vagasOcupadas}
+              onChange={(e) => setVagasOcupadas(e.target.value)}
+              style={estiloInput}
+            />
           </div>
-          
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', gridColumn: '1 / -1' }}>
-            <button type="submit" style={{ background: '#0056b3', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>
+
+          <div style={{
+            display: 'flex',
+            alignItems: 'flex-end',
+            gap: '8px',
+            gridColumn: '1 / -1'
+          }}>
+            <button type="submit" style={estiloBotao}>
               {idEdicao ? 'Salvar Alterações' : 'Cadastrar Turma'}
             </button>
+
             {idEdicao && (
-              <button type="button" onClick={limparFormulario} style={{ background: '#6c757d', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>
+              <button
+                type="button"
+                onClick={limparFormulario}
+                style={{ ...estiloBotao, background: '#6c757d' }}
+              >
                 Cancelar
               </button>
             )}
@@ -148,48 +280,68 @@ function Turmas() {
         </form>
       </div>
 
-      {/* Grade de Ofertas / Tabela */}
-      <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+      <div style={{
+        background: '#fff',
+        padding: '20px',
+        borderRadius: '8px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+      }}>
         <h3>Grade de Ofertas e Ocupação de Vagas</h3>
+
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px', textAlign: 'left', minWidth: '800px' }}>
+          <table style={{
+            width: '100%',
+            borderCollapse: 'collapse',
+            marginTop: '16px',
+            textAlign: 'left',
+            minWidth: '800px'
+          }}>
             <thead>
-              <tr style={{ borderBottom: '2px solid #eee', color: '#333' }}>
-                <th style={{ padding: '12px' }}>Código</th>
-                <th style={{ padding: '12px' }}>Disciplina</th>
-                <th style={{ padding: '12px' }}>Professor</th>
-                <th style={{ padding: '12px' }}>Turno / Horário</th>
-                <th style={{ padding: '12px' }}>Dias</th>
-                <th style={{ padding: '12px' }}>Ocupação (Disp / Tot)</th>
-                <th style={{ padding: '12px', textAlign: 'center' }}>Ações</th>
+              <tr>
+                <th>Código</th>
+                <th>Disciplina</th>
+                <th>Professor</th>
+                <th>Turno / Horário</th>
+                <th>Dias</th>
+                <th>Ocupação (Disp / Tot)</th>
+                <th>Ações</th>
               </tr>
             </thead>
+
             <tbody>
               {turmas.length === 0 ? (
                 <tr>
-                  <td colSpan="7" style={{ padding: '16px', textAlign: 'center', color: '#666' }}>Nenhuma turma cadastrada.</td>
+                  <td colSpan="7">
+                    Nenhuma turma cadastrada.
+                  </td>
                 </tr>
               ) : (
-                turmas.map(turma => {
-                  const vagasDisponiveis = turma.vagasTotais - (turma.vagasOcupadas || 0);
+                turmas.map((turma) => {
+                  const vagasDisponiveis =
+                    turma.vagasTotais - (turma.vagasOcupadas || 0);
+
                   return (
-                    <tr key={turma.id} style={{ borderBottom: '1px solid #eee' }}>
-                      <td style={{ padding: '12px', fontWeight: '600' }}>{turma.codigo}</td>
-                      <td style={{ padding: '12px' }}>{turma.disciplina}</td>
-                      <td style={{ padding: '12px' }}>{turma.professor}</td>
-                      <td style={{ padding: '12px' }}>{turma.turno} <br/><small style={{color: '#666'}}>{turma.horario}</small></td>
-                      <td style={{ padding: '12px' }}>{turma.diasSemana}</td>
-                      <td style={{ padding: '12px' }}>
-                        <span style={{ color: vagasDisponiveis > 0 ? 'green' : 'red', fontWeight: '600' }}>
-                          {turma.vagasOcupadas || 0} / {turma.vagasTotais}
-                        </span>
-                        <br/><small style={{color: '#666'}}>{vagasDisponiveis} vagas livres</small>
+                    <tr key={turma.id}>
+                      <td>{turma.codigo}</td>
+                      <td>{turma.disciplina}</td>
+                      <td>{turma.professor}</td>
+                      <td>
+                        {turma.turno}
+                        <br />
+                        <small>{turma.horario}</small>
                       </td>
-                      <td style={{ padding: '12px', textAlign: 'center' }}>
-                        <button onClick={() => handleEditar(turma)} style={{ background: '#ffc107', color: '#000', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', marginRight: '6px', fontWeight: '500' }}>
+                      <td>{turma.diasSemana}</td>
+                      <td>
+                        {turma.vagasOcupadas || 0} / {turma.vagasTotais}
+                        <br />
+                        <small>{vagasDisponiveis} vagas livres</small>
+                      </td>
+                      <td>
+                        <button onClick={() => handleEditar(turma)}>
                           Editar
                         </button>
-                        <button onClick={() => handleExcluir(turma.id)} style={{ background: '#dc3545', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: '500' }}>
+                        {' '}
+                        <button onClick={() => handleExcluir(turma.id)}>
                           Excluir
                         </button>
                       </td>
@@ -204,5 +356,24 @@ function Turmas() {
     </div>
   );
 }
+
+const estiloInput = {
+  display: 'block',
+  width: '100%',
+  padding: '8px',
+  borderRadius: '4px',
+  border: '1px solid #ccc',
+  marginTop: '6px',
+};
+
+const estiloBotao = {
+  background: '#0056b3',
+  color: '#fff',
+  border: 'none',
+  padding: '10px 20px',
+  borderRadius: '4px',
+  cursor: 'pointer',
+  fontWeight: '600',
+};
 
 export default Turmas;
