@@ -2,6 +2,7 @@
 import { createContext, useContext, useRef, useState } from 'react'
 import { getData, saveData } from '../services/storage'
 import { turmaServico } from '../services/turmaServico'
+import { obterDadosInstitucionais } from '../services/institution'
 
 const AcademicoContext = createContext(null)
 
@@ -73,19 +74,33 @@ export function validarMatricula(disciplinaId, matriculasAtuais, disciplinas, di
 }
 
 function turmasParaDisciplinas(turmas) {
-  return turmas.map((turma) => ({
+  const disciplinasInstitucionais = obterDadosInstitucionais('disciplinas')
+
+  return turmas.map((turma) => {
+    const disciplinaBase = disciplinasInstitucionais.find(
+      (item) => item.id === turma.disciplinaId || item.nome === turma.disciplina,
+    )
+
+    return {
+    // A matrícula identifica a oferta (turma), não apenas a disciplina.
     id: String(turma.id),
-    codigo: turma.codigo,
-    nome: turma.disciplina,
+    disciplinaId: disciplinaBase?.id ?? turma.disciplinaId ?? null,
+    codigo: disciplinaBase?.codigo ?? turma.codigo,
+    codigoTurma: turma.codigo,
+    nome: disciplinaBase?.nome ?? turma.disciplina,
+    cargaHoraria: disciplinaBase?.cargaHoraria ?? null,
+    creditos: disciplinaBase?.creditos ?? null,
+    periodo: disciplinaBase?.periodo ?? turma.periodo,
     professor: turma.professor,
     vagas: turma.vagasTotais,
-    preRequisitos: [],
+    preRequisitos: disciplinaBase?.preRequisitos ?? [],
     horarios: (turma.dias || []).map((dia) => ({
       dia,
       inicio: turma.inicio || '',
       fim: turma.fim || '',
     })),
-  }))
+    }
+  })
 }
 
 export function AcademicoProvider({ children }) {
