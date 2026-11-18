@@ -153,7 +153,13 @@ export function AcademicoProvider({ children }) {
 
   const [disciplinasConcluidasIds, setDisciplinasConcluidasIds] = useState(() => {
     const salvas = getData('disciplinas-concluidas')
-    return Array.isArray(salvas) ? salvas : []
+    if (!Array.isArray(salvas)) return []
+
+    // Converte registros antigos que eventualmente guardavam o ID da turma.
+    return [...new Set(salvas.map((id) => {
+      const oferta = disciplinas.find((item) => mesmoId(item.id, id))
+      return oferta ? idDaDisciplina(oferta) : id
+    }))]
   })
 
   const atualizarMatriculas = (proximas) => {
@@ -201,8 +207,10 @@ export function AcademicoProvider({ children }) {
     return { sucesso: true, mensagem: 'Matrícula cancelada com sucesso.' }
   }
 
-  const concluirDisciplina = (disciplinaId) => {
-    if (disciplinasConcluidasIds.includes(disciplinaId)) return
+  const concluirDisciplina = (id) => {
+    const oferta = disciplinas.find((item) => mesmoId(item.id, id))
+    const disciplinaId = oferta ? idDaDisciplina(oferta) : id
+    if (disciplinasConcluidasIds.some((concluidaId) => mesmoId(concluidaId, disciplinaId))) return
     const atualizadas = [...disciplinasConcluidasIds, disciplinaId]
     setDisciplinasConcluidasIds(atualizadas)
     saveData('disciplinas-concluidas', atualizadas)
