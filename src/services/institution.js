@@ -1,4 +1,4 @@
-import { getData, saveData } from './storage'
+import { getData, hasData, saveData } from './storage'
 
 const dadosIniciais = {
   disciplinas: [
@@ -17,9 +17,7 @@ const dadosIniciais = {
 }
 
 export function obterDadosInstitucionais(chave) {
-  const dadosSalvos = localStorage.getItem(`uniportal_${chave}`)
-
-  if (dadosSalvos === null) {
+  if (!hasData(chave)) {
     const iniciais = dadosIniciais[chave] || []
     saveData(chave, iniciais)
     return iniciais

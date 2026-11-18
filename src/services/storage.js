@@ -1,36 +1,54 @@
+const PREFIX = 'uniportal_'
 
-const PREFIX = "uniportal_";
+function obterArmazenamento() {
+  return globalThis.localStorage
+}
 
-// Retrieve data from localStorage
+// Recupera dados persistidos. Em caso de chave ausente ou conteúdo inválido,
+// retorna uma lista vazia para manter a aplicação utilizável.
 export function getData(key) {
   try {
-    const data = localStorage.getItem(`${PREFIX}${key}`);
+    const valor = obterArmazenamento()?.getItem(`${PREFIX}${key}`)
+    if (valor === null || valor === undefined || valor === '') return []
 
-    return data ? JSON.parse(data) : [];
+    return JSON.parse(valor) ?? []
   } catch (error) {
-    console.error(`Error retrieving ${key}:`, error);
-    return [];
+    console.error(`Erro ao recuperar os dados de "${key}":`, error)
+    return []
   }
 }
 
-// Save data to localStorage
+// Informa se a chave já existe, permitindo diferenciar ausência de dados
+// de uma lista intencionalmente vazia.
+export function hasData(key) {
+  try {
+    const armazenamento = obterArmazenamento()
+    return armazenamento ? armazenamento.getItem(`${PREFIX}${key}`) !== null : false
+  } catch (error) {
+    console.error(`Erro ao verificar os dados de "${key}":`, error)
+    return false
+  }
+}
+
 export function saveData(key, data) {
   try {
-    localStorage.setItem(`${PREFIX}${key}`, JSON.stringify(data));
-    return true;
+    const conteudo = JSON.stringify(data)
+    if (conteudo === undefined) return false
+
+    obterArmazenamento()?.setItem(`${PREFIX}${key}`, conteudo)
+    return Boolean(obterArmazenamento())
   } catch (error) {
-    console.error(`Error saving ${key}:`, error);
-    return false;
+    console.error(`Erro ao salvar os dados de "${key}":`, error)
+    return false
   }
 }
 
-// Remove data from localStorage
 export function removeData(key) {
   try {
-    localStorage.removeItem(`${PREFIX}${key}`);
-    return true;
+    obterArmazenamento()?.removeItem(`${PREFIX}${key}`)
+    return Boolean(obterArmazenamento())
   } catch (error) {
-    console.error(`Error removing ${key}:`, error);
-    return false;
+    console.error(`Erro ao remover os dados de "${key}":`, error)
+    return false
   }
 }

@@ -2,6 +2,7 @@
 import { createContext, useContext, useRef, useState } from 'react'
 import { getData, saveData } from '../services/storage'
 import { turmaServico } from '../services/turmaServico'
+import { obterDadosInstitucionais } from '../services/institution'
 
 const AcademicoContext = createContext(null)
 
@@ -17,12 +18,15 @@ export function horariosConflitam(primeira, segunda) {
 }
 
 export function obterVagasDisponiveis(disciplina, matriculas) {
-  return (
-    disciplina.vagas -
-    matriculas.filter(
-      (m) => m.situacao === 'Ativa' && m.disciplinaId === disciplina.id,
-    ).length
-  )
+  const matriculasAtivas = matriculas.filter(
+    (m) => m.situacao === 'Ativa' && m.disciplinaId === disciplina.id,
+  ).length
+  const ocupacaoRegistrada = Number(disciplina.vagasOcupadas) || 0
+
+  // A ocupação já é atualizada no serviço de turmas ao matricular/cancelar.
+  // Math.max mantém compatibilidade com matrículas antigas ainda não refletidas
+  // no contador persistido, sem descontar duas vezes as matrículas novas.
+  return Math.max(disciplina.vagas - Math.max(ocupacaoRegistrada, matriculasAtivas), 0)
 }
 
 export function validarMatricula(disciplinaId, matriculasAtuais, disciplinas, disciplinasConcluidas) {
@@ -73,19 +77,34 @@ export function validarMatricula(disciplinaId, matriculasAtuais, disciplinas, di
 }
 
 function turmasParaDisciplinas(turmas) {
-  return turmas.map((turma) => ({
+  const disciplinasInstitucionais = obterDadosInstitucionais('disciplinas')
+
+  return turmas.map((turma) => {
+    const disciplinaBase = disciplinasInstitucionais.find(
+      (item) => item.id === turma.disciplinaId || item.nome === turma.disciplina,
+    )
+
+    return {
+    // A matrícula identifica a oferta (turma), não apenas a disciplina.
     id: String(turma.id),
-    codigo: turma.codigo,
-    nome: turma.disciplina,
+    disciplinaId: disciplinaBase?.id ?? turma.disciplinaId ?? null,
+    codigo: disciplinaBase?.codigo ?? turma.codigo,
+    codigoTurma: turma.codigo,
+    nome: disciplinaBase?.nome ?? turma.disciplina,
+    cargaHoraria: disciplinaBase?.cargaHoraria ?? null,
+    creditos: disciplinaBase?.creditos ?? null,
+    periodo: disciplinaBase?.periodo ?? turma.periodo,
     professor: turma.professor,
     vagas: turma.vagasTotais,
-    preRequisitos: [],
+    vagasOcupadas: turma.vagasOcupadas,
+    preRequisitos: disciplinaBase?.preRequisitos ?? [],
     horarios: (turma.dias || []).map((dia) => ({
       dia,
       inicio: turma.inicio || '',
       fim: turma.fim || '',
     })),
-  }))
+    }
+  })
 }
 
 export function AcademicoProvider({ children }) {
